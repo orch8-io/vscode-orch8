@@ -46,7 +46,7 @@ describe('buildGraph', () => {
     expect(byId(top, 'b2')!.pointer).toEqual(['blocks', '1', 'branches', '1', '1']);
 
     const router = byId(top, 'route')!;
-    expect(router.lanes.map((l) => l.label)).toEqual(['{{ context.data.tier == "gold" …', 'default']);
+    expect(router.lanes.map((l) => l.label)).toEqual(['data.tier == "gold"', 'default']);
     expect(byId(top, 'gold')!.pointer).toEqual(['blocks', '5', 'routes', '0', 'blocks', '0']);
 
     expect(byId(top, 'guarded')!.lanes.map((l) => l.label)).toEqual(['try', 'catch', 'finally']);
@@ -62,7 +62,7 @@ describe('buildGraph', () => {
   it('adds details and badges', () => {
     expect(byId(top, 'start')).toMatchObject({ detail: 'log', badges: ['retry×3'] });
     expect(byId(top, 'child')!.detail).toBe('→ child-flow v2');
-    expect(byId(top, 'poll')!.detail).toBe('while {{ outputs.check.done != true }}');
+    expect(byId(top, 'poll')!.detail).toBe('while outputs.check.done != true');
     expect(byId(top, 'poll')!.badges).toEqual(['max 5']);
     expect(byId(top, 'each')!.detail).toBe('each item in {{ context.data.items }}');
   });

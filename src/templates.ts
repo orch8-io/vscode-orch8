@@ -68,14 +68,22 @@ export function starterSequence(name: string, kind: StarterKind): Record<string,
             id: 'review',
             handler: 'human_review',
             params: { review_data: '{{ outputs.draft }}', instructions: 'Approve the drafted reply' },
-            wait_for_input: { prompt: 'Send this reply?', timeout: 86400000 },
+            wait_for_input: {
+              prompt: 'Send this reply?',
+              timeout: 86400000,
+              choices: [
+                { label: 'Send', value: 'send' },
+                { label: 'Discard', value: 'discard' },
+              ],
+              store_as: 'decision',
+            },
           },
           {
             type: 'router',
             id: 'decide',
             routes: [
               {
-                condition: '{{ outputs.review.choice == "yes" }}',
+                condition: 'data.decision == "send"',
                 blocks: [{ type: 'step', id: 'send', handler: 'log', params: { message: 'sending' } }],
               },
             ],

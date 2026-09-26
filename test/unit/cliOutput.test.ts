@@ -168,3 +168,38 @@ describe('fallback detection', () => {
     expect(isPreflightUnavailable('Error: invalid JSON in draft.json')).toBe(false);
   });
 });
+
+describe('real CLI output', () => {
+  // Captured from `orch8 --url http://127.0.0.1:18080/api/v1 --output json sequence preflight --file <all-blocks draft>`
+  // against `orch8 dev` built from engine main (c487ae1).
+  const real = readFileSync(join(__dirname, '..', 'fixtures', 'preflight-report.real.json'), 'utf8');
+
+  it('parses the report and locates every finding in the document', () => {
+    const report = parsePreflightStdout(real)!;
+    expect(report.overall).toBe('fail');
+    const issues = issuesFromPreflight(report);
+    expect(issues.length).toBeGreaterThanOrEqual(9);
+    for (const issue of issues) {
+      const loc = resolveTarget(issue.target, doc);
+      expect(loc.exact, `${issue.origin}: ${issue.message}`).toBe(true);
+    }
+    const missing = issues.find((i) => i.code === 'SUB_SEQUENCE_MISSING')!;
+    expect(missing.severity).toBe('error');
+    expect(at(resolveTarget(missing.target, doc))).toBe('"child-flow"');
+    const poll = issues.find((i) => i.message.startsWith('[poll]'))!;
+    expect(at(resolveTarget(poll.target, doc))).toBe('"poll"');
+  });
+
+  it('parses real strict-check stderr', () => {
+    // Verbatim stderr lines from `orch8 sequence upgrade-format <draft>`.
+    const cases: [string, string][] = [
+      ['Error: unknown field "retires" at blocks[0].retires (did you mean "retry"?)', '{'],
+      ['Error: blocks[1].branches[0][0].retry.max_attempts: invalid type: string "x", expected u32', '{'],
+      ['Error: duplicate block id: start', '"start"'],
+    ];
+    for (const [stderr, expected] of cases) {
+      const [issue] = issuesFromLocalError(stderr);
+      expect(at(resolveTarget(issue.target, doc)), stderr).toBe(expected);
+    }
+  });
+});

@@ -6,7 +6,8 @@
 //   p(1, 'default text')   -> ${1:default text}
 //   c(2, ['a', 'b'])       -> ${2|a,b|}
 //   num(p(3, '3'))         -> emitted unquoted (numbers stay numbers)
-// Field names follow engine/contracts/sequence.schema.json; handler params
+// Conditions (loop / router) are raw expressions, not {{ }} templates — the
+// engine lint rejects templated conditions. Field names follow engine/contracts/sequence.schema.json; handler params
 // follow the engine handler docs (llm_call, human_review, http_request,
 // wait_for_event, email, notify).
 
@@ -40,7 +41,7 @@ export const SNIPPETS = [
     name: 'Orch8: step with retry',
     prefix: ['orch8-step-retry'],
     description: 'Step with a retry policy and a timeout (ms)',
-    body: step(p(1, 'step_id'), p(2, 'http_request'), {}, {
+    body: step(p(1, 'step_id'), p(2, 'http_request'), { url: p(7, 'https://api.example.com/resource') }, {
       retry: { max_attempts: num(p(3, '3')), initial_backoff: num(p(4, '1000')), backoff_multiplier: num(p(5, '2')) },
       timeout: num(p(6, '30000')),
     }),
@@ -72,7 +73,7 @@ export const SNIPPETS = [
     body: {
       type: 'loop',
       id: p(1, 'poll'),
-      condition: p(2, '{{ outputs.check.done != true }}'),
+      condition: p(2, 'outputs.check.done != true'),
       max_iterations: num(p(3, '10')),
       body: [step(p(4, 'check'), p(5, 'noop'), {})],
     },
@@ -86,6 +87,7 @@ export const SNIPPETS = [
       id: p(1, 'each_item'),
       collection: p(2, '{{ context.data.items }}'),
       item_var: p(3, 'item'),
+      max_iterations: num(p(6, '100')),
       body: [step(p(4, 'process_item'), p(5, 'noop'), {})],
     },
   },
@@ -96,7 +98,7 @@ export const SNIPPETS = [
     body: {
       type: 'router',
       id: p(1, 'route'),
-      routes: [{ condition: p(2, '{{ context.data.tier == "gold" }}'), blocks: [step(p(3, 'gold_path'), p(4, 'noop'), {})] }],
+      routes: [{ condition: p(2, 'data.tier == "gold"'), blocks: [step(p(3, 'gold_path'), p(4, 'noop'), {})] }],
       default: [step(p(5, 'default_path'), p(6, 'noop'), {})],
     },
   },
@@ -107,7 +109,7 @@ export const SNIPPETS = [
     body: {
       type: 'try_catch',
       id: p(1, 'guarded'),
-      try_block: [step(p(2, 'risky'), p(3, 'http_request'), {})],
+      try_block: [step(p(2, 'risky'), p(3, 'http_request'), { url: p(8, 'https://api.example.com/charge') })],
       catch_block: [step(p(4, 'recover'), p(5, 'log'), { message: 'recovering' })],
       finally_block: [step(p(6, 'cleanup'), p(7, 'noop'), {})],
     },
@@ -156,8 +158,8 @@ export const SNIPPETS = [
       steps: [
         {
           id: p(2, 'reserve'),
-          action: step(p(3, 'reserve_action'), p(4, 'http_request'), {}),
-          compensation: step(p(5, 'release_action'), p(6, 'http_request'), {}),
+          action: step(p(3, 'reserve_action'), p(4, 'http_request'), { method: 'POST', url: p(7, 'https://api.example.com/reserve') }),
+          compensation: step(p(5, 'release_action'), p(6, 'http_request'), { method: 'POST', url: p(8, 'https://api.example.com/release') }),
         },
       ],
     },
@@ -182,7 +184,7 @@ export const SNIPPETS = [
       review_data: p(2, '{{ outputs.ask_llm }}'),
       instructions: p(3, 'Approve or reject this output'),
       reviewer: p(4, 'team-lead'),
-    }, { wait_for_input: { prompt: p(5, 'Approve this?'), timeout: num(p(6, '86400000')) } }),
+    }, { wait_for_input: { prompt: p(5, 'Approve this?'), timeout: num(p(6, '86400000')), store_as: p(7, 'decision') } }),
   },
   {
     name: 'Orch8: http_request step',

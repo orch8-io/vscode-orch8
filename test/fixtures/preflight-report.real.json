@@ -1,0 +1,168 @@
+{
+  "checks": [
+    {
+      "id": "definition_valid",
+      "status": "pass",
+      "summary": "definition validates"
+    },
+    {
+      "findings": [
+        {
+          "affected_resource": {
+            "id": "race",
+            "kind": "block"
+          },
+          "code": "LINT_WARNING",
+          "confidence": "certain",
+          "observed_at": "2026-09-26T03:48:14.633505Z",
+          "severity": "warning",
+          "summary": "[race] race with fewer than 2 branches has no racing effect"
+        },
+        {
+          "affected_resource": {
+            "id": "poll",
+            "kind": "block"
+          },
+          "code": "LINT_WARNING",
+          "confidence": "certain",
+          "observed_at": "2026-09-26T03:48:14.633505Z",
+          "severity": "warning",
+          "summary": "[poll] condition: expression parse error — unexpected character '{'"
+        },
+        {
+          "affected_resource": {
+            "id": "route",
+            "kind": "block"
+          },
+          "code": "LINT_WARNING",
+          "confidence": "certain",
+          "observed_at": "2026-09-26T03:48:14.633505Z",
+          "severity": "warning",
+          "summary": "[route] route.condition: expression parse error — unexpected character '{'"
+        },
+        {
+          "affected_resource": {
+            "id": "risky",
+            "kind": "block"
+          },
+          "code": "LINT_WARNING",
+          "confidence": "certain",
+          "observed_at": "2026-09-26T03:48:14.633505Z",
+          "severity": "warning",
+          "summary": "[risky] http_request: missing required param `url`"
+        },
+        {
+          "affected_resource": {
+            "id": "reserve_action",
+            "kind": "block"
+          },
+          "code": "LINT_WARNING",
+          "confidence": "certain",
+          "observed_at": "2026-09-26T03:48:14.633505Z",
+          "severity": "warning",
+          "summary": "[reserve_action] http_request: missing required param `url`"
+        },
+        {
+          "affected_resource": {
+            "id": "release_action",
+            "kind": "block"
+          },
+          "code": "LINT_WARNING",
+          "confidence": "certain",
+          "observed_at": "2026-09-26T03:48:14.633505Z",
+          "severity": "warning",
+          "summary": "[release_action] http_request: missing required param `url`"
+        },
+        {
+          "affected_resource": {
+            "id": "each",
+            "kind": "block"
+          },
+          "code": "LINT_WARNING",
+          "confidence": "certain",
+          "observed_at": "2026-09-26T03:48:14.633505Z",
+          "severity": "warning",
+          "summary": "[each] for_each uses default max_iterations (1000) — set explicitly to confirm intent"
+        }
+      ],
+      "id": "lint_clean",
+      "status": "warning",
+      "summary": "7 lint warning(s)"
+    },
+    {
+      "id": "input_schema_valid",
+      "status": "pass",
+      "summary": "no input schema declared"
+    },
+    {
+      "id": "output_schemas_valid",
+      "status": "pass",
+      "summary": "all output schemas are well-formed"
+    },
+    {
+      "findings": [
+        {
+          "affected_resource": {
+            "id": "poll",
+            "kind": "block"
+          },
+          "code": "TYPE_UNKNOWN",
+          "confidence": "certain",
+          "observed_at": "2026-09-26T03:48:14.633505Z",
+          "severity": "warning",
+          "summary": "producer/reference 'outputs.check.done' -> consumer 'poll': reference cannot be proven because its producer has no schema"
+        }
+      ],
+      "id": "typed_dataflow_compatible",
+      "status": "warning",
+      "summary": "1 typed dataflow finding(s)"
+    },
+    {
+      "id": "when_guards_valid",
+      "status": "pass",
+      "summary": "all `when` guard expressions are well-formed"
+    },
+    {
+      "id": "handlers_have_workers",
+      "status": "pass",
+      "summary": "every handler is a built-in, an enabled plugin, or has a live compatible worker"
+    },
+    {
+      "id": "plugins_enabled",
+      "status": "pass",
+      "summary": "no disabled plugins referenced"
+    },
+    {
+      "id": "credentials_present",
+      "status": "pass",
+      "summary": "no credential references"
+    },
+    {
+      "id": "queues_consumable",
+      "status": "pass",
+      "summary": "no explicit queue targets"
+    },
+    {
+      "findings": [
+        {
+          "affected_resource": {
+            "id": "child-flow",
+            "kind": "sequence"
+          },
+          "code": "SUB_SEQUENCE_MISSING",
+          "confidence": "certain",
+          "observed_at": "2026-09-26T03:48:14.633505Z",
+          "severity": "error",
+          "summary": "block 'child' references sub-sequence 'child-flow' v2, which does not exist in namespace 'default'"
+        }
+      ],
+      "id": "sub_sequences_available",
+      "status": "fail",
+      "summary": "1 sub-sequence problem(s)"
+    }
+  ],
+  "generated_at": "2026-09-26T03:48:14.633505Z",
+  "overall": "fail",
+  "sequence_name": "all-blocks",
+  "sequence_version": 1
+}

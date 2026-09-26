@@ -38,7 +38,8 @@
       "- type: step",
       "  id: ${1:step_id}",
       "  handler: ${2:http_request}",
-      "  params: {\\}",
+      "  params:",
+      "    url: ${7:https://api.example.com/resource}",
       "  retry:",
       "    max_attempts: ${3:3}",
       "    initial_backoff: ${4:1000}",
@@ -92,7 +93,7 @@
     "body": [
       "- type: loop",
       "  id: ${1:poll}",
-      "  condition: \"${2:{{ outputs.check.done != true \\}\\}}\"",
+      "  condition: ${2:outputs.check.done != true}",
       "  max_iterations: ${3:10}",
       "  body:",
       "    - type: step",
@@ -111,6 +112,7 @@
       "  id: ${1:each_item}",
       "  collection: \"${2:{{ context.data.items \\}\\}}\"",
       "  item_var: ${3:item}",
+      "  max_iterations: ${6:100}",
       "  body:",
       "    - type: step",
       "      id: ${4:process_item}",
@@ -127,7 +129,7 @@
       "- type: router",
       "  id: ${1:route}",
       "  routes:",
-      "    - condition: \"${2:{{ context.data.tier == \\\\\"gold\\\\\" \\}\\}}\"",
+      "    - condition: ${2:data.tier == \"gold\"}",
       "      blocks:",
       "        - type: step",
       "          id: ${3:gold_path}",
@@ -152,7 +154,8 @@
       "    - type: step",
       "      id: ${2:risky}",
       "      handler: ${3:http_request}",
-      "      params: {\\}",
+      "      params:",
+      "        url: ${8:https://api.example.com/charge}",
       "  catch_block:",
       "    - type: step",
       "      id: ${4:recover}",
@@ -233,12 +236,16 @@
       "        type: step",
       "        id: ${3:reserve_action}",
       "        handler: ${4:http_request}",
-      "        params: {\\}",
+      "        params:",
+      "          method: POST",
+      "          url: ${7:https://api.example.com/reserve}",
       "      compensation:",
       "        type: step",
       "        id: ${5:release_action}",
       "        handler: ${6:http_request}",
-      "        params: {\\}"
+      "        params:",
+      "          method: POST",
+      "          url: ${8:https://api.example.com/release}"
     ]
   },
   "Orch8: llm_call step": {
@@ -276,7 +283,8 @@
       "    reviewer: ${4:team-lead}",
       "  wait_for_input:",
       "    prompt: ${5:Approve this?}",
-      "    timeout: ${6:86400000}"
+      "    timeout: ${6:86400000}",
+      "    store_as: ${7:decision}"
     ]
   },
   "Orch8: http_request step": {

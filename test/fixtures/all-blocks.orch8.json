@@ -14,12 +14,12 @@
       ]
     },
     { "type": "race", "id": "race", "branches": [[{ "type": "step", "id": "fast", "handler": "noop", "params": {} }]] },
-    { "type": "loop", "id": "poll", "condition": "{{ outputs.check.done != true }}", "max_iterations": 5, "body": [{ "type": "step", "id": "check", "handler": "noop", "params": {} }] },
+    { "type": "loop", "id": "poll", "condition": "outputs.check.done != true", "max_iterations": 5, "body": [{ "type": "step", "id": "check", "handler": "noop", "params": {} }] },
     { "type": "for_each", "id": "each", "collection": "{{ context.data.items }}", "item_var": "item", "body": [{ "type": "step", "id": "process", "handler": "noop", "params": {} }] },
     {
       "type": "router",
       "id": "route",
-      "routes": [{ "condition": "{{ context.data.tier == \"gold\" }}", "blocks": [{ "type": "step", "id": "gold", "handler": "noop", "params": {} }] }],
+      "routes": [{ "condition": "data.tier == \"gold\"", "blocks": [{ "type": "step", "id": "gold", "handler": "noop", "params": {} }] }],
       "default": [{ "type": "step", "id": "other", "handler": "noop", "params": {} }]
     },
     {
