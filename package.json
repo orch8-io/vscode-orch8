@@ -4,8 +4,15 @@
   "description": "Authoring support for Orch8 durable workflow sequences: schema validation, CLI preflight diagnostics, run/test/deploy CodeLens, block graph preview, and snippets.",
   "version": "0.1.0",
   "publisher": "orch8",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "homepage": "https://orch8.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orch8-io/vscode-orch8.git"
+  },
+  "bugs": {
+    "url": "https://github.com/orch8-io/vscode-orch8/issues"
+  },
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -250,7 +257,7 @@
     "lint": "eslint src test scripts esbuild.mjs",
     "test": "vitest run",
     "check": "npm run typecheck && npm run lint && npm test && npm run build && node scripts/gen-snippets.mjs --check",
-    "package": "vsce package --no-dependencies --allow-missing-repository",
+    "package": "vsce package --no-dependencies",
     "vscode:prepublish": "node esbuild.mjs --production",
     "schema:check": "node scripts/sync-schema.mjs --check"
   },

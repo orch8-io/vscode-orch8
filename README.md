@@ -90,10 +90,8 @@ Unit tests cover the pure modules: JSON-pointer → range resolution for JSON an
 
 Before the first release:
 
-- [ ] Choose the extension license and replace the placeholder `LICENSE`.
 - [ ] Create the publisher `orch8` (or change `publisher` in `package.json`) at <https://marketplace.visualstudio.com/manage> and an Azure DevOps PAT with *Marketplace › Manage* scope.
 - [ ] Claim the `orch8` namespace on Open VSX (<https://open-vsx.org>, sign the Eclipse publisher agreement, create an access token): `npx ovsx create-namespace orch8 -p <token>`.
-- [ ] Add a `repository` (and `bugs`) field to `package.json`, then drop `--allow-missing-repository` from the `package` script.
 - [ ] Add a 128×128 PNG `icon` and `galleryBanner` to `package.json`.
 - [ ] Add the screenshots referenced above.
 - [ ] Decide whether to declare `redhat.vscode-yaml` in `extensionDependencies` (hard) or leave it optional (current).
