@@ -1,0 +1,18 @@
+$schema: https://orch8.io/contracts/sequence.schema.json
+name: yaml-flow
+blocks:
+  - type: step
+    id: start
+    handler: log
+    params:
+      message: hi
+  - type: parallel
+    id: fan_out
+    branches:
+      - - type: step
+          id: a
+          handler: noop
+      - - type: step
+          id: b
+          handler: noop
+          retires: 3

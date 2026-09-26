@@ -1,0 +1,55 @@
+{
+  "$schema": "https://orch8.io/contracts/sequence.schema.json",
+  "schema_version": 1,
+  "namespace": "default",
+  "name": "all-blocks",
+  "blocks": [
+    { "type": "step", "id": "start", "handler": "log", "params": { "message": "hi" }, "retry": { "max_attempts": 3 } },
+    {
+      "type": "parallel",
+      "id": "fan_out",
+      "branches": [
+        [{ "type": "step", "id": "a", "handler": "noop", "params": {} }],
+        [{ "type": "step", "id": "b", "handler": "noop", "params": {} }, { "type": "step", "id": "b2", "handler": "noop", "params": {} }]
+      ]
+    },
+    { "type": "race", "id": "race", "branches": [[{ "type": "step", "id": "fast", "handler": "noop", "params": {} }]] },
+    { "type": "loop", "id": "poll", "condition": "{{ outputs.check.done != true }}", "max_iterations": 5, "body": [{ "type": "step", "id": "check", "handler": "noop", "params": {} }] },
+    { "type": "for_each", "id": "each", "collection": "{{ context.data.items }}", "item_var": "item", "body": [{ "type": "step", "id": "process", "handler": "noop", "params": {} }] },
+    {
+      "type": "router",
+      "id": "route",
+      "routes": [{ "condition": "{{ context.data.tier == \"gold\" }}", "blocks": [{ "type": "step", "id": "gold", "handler": "noop", "params": {} }] }],
+      "default": [{ "type": "step", "id": "other", "handler": "noop", "params": {} }]
+    },
+    {
+      "type": "try_catch",
+      "id": "guarded",
+      "try_block": [{ "type": "step", "id": "risky", "handler": "http_request", "params": {} }],
+      "catch_block": [{ "type": "step", "id": "recover", "handler": "log", "params": {} }],
+      "finally_block": [{ "type": "step", "id": "cleanup", "handler": "noop", "params": {} }]
+    },
+    { "type": "sub_sequence", "id": "child", "sequence_name": "child-flow", "version": 2 },
+    {
+      "type": "ab_split",
+      "id": "exp",
+      "variants": [
+        { "name": "control", "weight": 75, "blocks": [{ "type": "step", "id": "ctl", "handler": "noop", "params": {} }] },
+        { "name": "variant_a", "weight": 25, "blocks": [{ "type": "step", "id": "var", "handler": "noop", "params": {} }] }
+      ]
+    },
+    { "type": "cancellation_scope", "id": "protected", "blocks": [{ "type": "step", "id": "must", "handler": "noop", "params": {} }] },
+    {
+      "type": "saga",
+      "id": "booking",
+      "steps": [
+        {
+          "id": "reserve",
+          "action": { "type": "step", "id": "reserve_action", "handler": "http_request", "params": {} },
+          "compensation": { "type": "step", "id": "release_action", "handler": "http_request", "params": {} }
+        }
+      ]
+    }
+  ],
+  "on_failure": [{ "type": "step", "id": "alert", "handler": "log", "params": {} }]
+}

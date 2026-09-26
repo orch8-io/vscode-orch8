@@ -1,0 +1,272 @@
+{
+  "name": "vscode-orch8",
+  "displayName": "Orch8",
+  "description": "Authoring support for Orch8 durable workflow sequences: schema validation, CLI preflight diagnostics, run/test/deploy CodeLens, block graph preview, and snippets.",
+  "version": "0.1.0",
+  "publisher": "orch8",
+  "license": "SEE LICENSE IN LICENSE",
+  "homepage": "https://orch8.io",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Snippets",
+    "Visualization"
+  ],
+  "keywords": [
+    "orch8",
+    "workflow",
+    "durable execution",
+    "orchestration",
+    "json schema"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onLanguage:json",
+    "onLanguage:jsonc",
+    "onLanguage:yaml",
+    "workspaceContains:**/*.orch8.json",
+    "workspaceContains:**/*.orch8.yaml",
+    "workspaceContains:**/*.orch8.yml",
+    "workspaceContains:**/orch8.sequence.json"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "Running the orch8 CLI (diagnostics, CodeLens actions) is disabled in untrusted workspaces. Schema validation, snippets and the graph preview still work.",
+      "restrictedConfigurations": [
+        "orch8.cliPath"
+      ]
+    }
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "orch8.newSequence",
+        "title": "New Orch8 Sequence",
+        "category": "Orch8"
+      },
+      {
+        "command": "orch8.showGraph",
+        "title": "Show Block Graph",
+        "category": "Orch8",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "orch8.validate",
+        "title": "Validate Sequence (preflight)",
+        "category": "Orch8"
+      },
+      {
+        "command": "orch8.runDev",
+        "title": "Run in orch8 dev",
+        "category": "Orch8"
+      },
+      {
+        "command": "orch8.test",
+        "title": "Test Sequence",
+        "category": "Orch8"
+      },
+      {
+        "command": "orch8.deploy",
+        "title": "Deploy Sequence (sequence apply)",
+        "category": "Orch8"
+      },
+      {
+        "command": "orch8.preflightInTerminal",
+        "title": "Run Preflight in Terminal",
+        "category": "Orch8"
+      },
+      {
+        "command": "orch8.setApiKey",
+        "title": "Set API Key",
+        "category": "Orch8"
+      },
+      {
+        "command": "orch8.clearApiKey",
+        "title": "Clear API Key",
+        "category": "Orch8"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "orch8.showGraph",
+          "when": "orch8.isSequence",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "orch8.showGraph",
+          "when": "orch8.isSequence"
+        },
+        {
+          "command": "orch8.validate",
+          "when": "orch8.isSequence"
+        },
+        {
+          "command": "orch8.runDev",
+          "when": "orch8.isSequence"
+        },
+        {
+          "command": "orch8.test",
+          "when": "orch8.isSequence"
+        },
+        {
+          "command": "orch8.deploy",
+          "when": "orch8.isSequence"
+        },
+        {
+          "command": "orch8.preflightInTerminal",
+          "when": "orch8.isSequence"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Orch8",
+      "properties": {
+        "orch8.cliPath": {
+          "type": "string",
+          "default": "orch8",
+          "scope": "machine-overridable",
+          "description": "Path to the orch8 CLI executable."
+        },
+        "orch8.serverUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Orch8 API base URL passed as --url (e.g. http://127.0.0.1:8080/api/v1). Empty uses the CLI default / ORCH8_URL."
+        },
+        "orch8.tenantId": {
+          "type": "string",
+          "default": "",
+          "description": "Tenant passed as --tenant-id. Empty uses the CLI default / ORCH8_TENANT_ID."
+        },
+        "orch8.validation.mode": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "preflight",
+            "local",
+            "off"
+          ],
+          "enumDescriptions": [
+            "Run `orch8 sequence preflight` against the server; fall back to the offline strict check when the server is unreachable or rejects the draft.",
+            "Only run `orch8 sequence preflight` (needs a reachable server).",
+            "Only run the offline strict check (`orch8 sequence upgrade-format`, output discarded).",
+            "Do not run the CLI; JSON Schema validation still applies."
+          ],
+          "default": "auto",
+          "description": "How CLI-backed diagnostics are produced on save."
+        },
+        "orch8.validation.onSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run CLI validation when a sequence file is saved."
+        },
+        "orch8.validation.onOpen": {
+          "type": "boolean",
+          "default": false,
+          "description": "Also run CLI validation when a sequence file is opened."
+        },
+        "orch8.validation.timeoutMs": {
+          "type": "number",
+          "default": 20000,
+          "minimum": 1000,
+          "description": "Timeout for a single CLI validation run."
+        },
+        "orch8.validation.yaml": {
+          "type": "boolean",
+          "default": true,
+          "description": "Validate YAML sequences with the CLI by converting them to a temporary JSON draft first."
+        },
+        "orch8.docsBaseUrl": {
+          "type": "string",
+          "default": "https://orch8.io/docs/errors",
+          "description": "Base URL for error-code documentation links (<base>#<code>)."
+        },
+        "orch8.codeLens.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Run / Test / Deploy CodeLens on sequence files."
+        },
+        "orch8.dev.extraArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Extra arguments appended to `orch8 dev <file>` (e.g. [\"--skip-timers\", \"--dry-run\"])."
+        }
+      }
+    },
+    "jsonValidation": [
+      {
+        "fileMatch": [
+          "*.orch8.json",
+          "orch8.sequence.json",
+          "**/sequences/*.json",
+          "**/sequences/**/*.json"
+        ],
+        "url": "./schemas/sequence.authoring.schema.json"
+      }
+    ],
+    "yamlValidation": [
+      {
+        "fileMatch": [
+          "*.orch8.yaml",
+          "*.orch8.yml",
+          "**/sequences/*.yaml",
+          "**/sequences/*.yml",
+          "**/sequences/**/*.yaml",
+          "**/sequences/**/*.yml"
+        ],
+        "url": "./schemas/sequence.authoring.schema.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "json",
+        "path": "./snippets/orch8.json.code-snippets"
+      },
+      {
+        "language": "jsonc",
+        "path": "./snippets/orch8.json.code-snippets"
+      },
+      {
+        "language": "yaml",
+        "path": "./snippets/orch8.yaml.code-snippets"
+      }
+    ]
+  },
+  "scripts": {
+    "sync-schema": "node scripts/sync-schema.mjs",
+    "gen-snippets": "node scripts/gen-snippets.mjs",
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc -p . --noEmit",
+    "lint": "eslint src test scripts esbuild.mjs",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm run lint && npm test && npm run build && node scripts/gen-snippets.mjs --check",
+    "package": "vsce package --no-dependencies --allow-missing-repository",
+    "vscode:prepublish": "node esbuild.mjs --production",
+    "schema:check": "node scripts/sync-schema.mjs --check"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^22.20.4",
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^4.0.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "esbuild": "^0.28.2",
+    "eslint": "^9.39.5",
+    "jsonc-parser": "^3.3.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.70.1",
+    "vitest": "^5.0.2",
+    "yaml": "^2.9.1"
+  }
+}

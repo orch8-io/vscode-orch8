@@ -1,0 +1,356 @@
+{
+  "Orch8: sequence": {
+    "prefix": [
+      "orch8-sequence"
+    ],
+    "description": "A new Orch8 sequence document",
+    "body": [
+      "schema_version: 1",
+      "namespace: ${1:default}",
+      "name: ${2:my-workflow}",
+      "blocks:",
+      "  - type: step",
+      "    id: ${3:first_step}",
+      "    handler: ${4:noop}",
+      "    params:",
+      "      message: ${5:Hello from Orch8}"
+    ]
+  },
+  "Orch8: step block": {
+    "prefix": [
+      "orch8-step"
+    ],
+    "description": "Step: run one handler",
+    "body": [
+      "- type: step",
+      "  id: ${1:step_id}",
+      "  handler: ${2:noop}",
+      "  params:",
+      "    ${3:key}: ${4:value}"
+    ]
+  },
+  "Orch8: step with retry": {
+    "prefix": [
+      "orch8-step-retry"
+    ],
+    "description": "Step with a retry policy and a timeout (ms)",
+    "body": [
+      "- type: step",
+      "  id: ${1:step_id}",
+      "  handler: ${2:http_request}",
+      "  params: {\\}",
+      "  retry:",
+      "    max_attempts: ${3:3}",
+      "    initial_backoff: ${4:1000}",
+      "    backoff_multiplier: ${5:2}",
+      "  timeout: ${6:30000}"
+    ]
+  },
+  "Orch8: parallel block": {
+    "prefix": [
+      "orch8-parallel"
+    ],
+    "description": "Parallel: run every branch concurrently",
+    "body": [
+      "- type: parallel",
+      "  id: ${1:fan_out}",
+      "  branches:",
+      "    - - type: step",
+      "        id: ${2:branch_a}",
+      "        handler: ${3:noop}",
+      "        params: {\\}",
+      "    - - type: step",
+      "        id: ${4:branch_b}",
+      "        handler: ${5:noop}",
+      "        params: {\\}"
+    ]
+  },
+  "Orch8: race block": {
+    "prefix": [
+      "orch8-race"
+    ],
+    "description": "Race: the first branch to finish wins",
+    "body": [
+      "- type: race",
+      "  id: ${1:first_wins}",
+      "  branches:",
+      "    - - type: step",
+      "        id: ${2:fast_path}",
+      "        handler: ${3:noop}",
+      "        params: {\\}",
+      "    - - type: step",
+      "        id: ${4:slow_path}",
+      "        handler: ${5:noop}",
+      "        params: {\\}"
+    ]
+  },
+  "Orch8: loop block": {
+    "prefix": [
+      "orch8-loop"
+    ],
+    "description": "Loop: repeat the body while the condition holds",
+    "body": [
+      "- type: loop",
+      "  id: ${1:poll}",
+      "  condition: \"${2:{{ outputs.check.done != true \\}\\}}\"",
+      "  max_iterations: ${3:10}",
+      "  body:",
+      "    - type: step",
+      "      id: ${4:check}",
+      "      handler: ${5:noop}",
+      "      params: {\\}"
+    ]
+  },
+  "Orch8: for_each block": {
+    "prefix": [
+      "orch8-foreach"
+    ],
+    "description": "ForEach: run the body for every item of a collection",
+    "body": [
+      "- type: for_each",
+      "  id: ${1:each_item}",
+      "  collection: \"${2:{{ context.data.items \\}\\}}\"",
+      "  item_var: ${3:item}",
+      "  body:",
+      "    - type: step",
+      "      id: ${4:process_item}",
+      "      handler: ${5:noop}",
+      "      params: {\\}"
+    ]
+  },
+  "Orch8: router block": {
+    "prefix": [
+      "orch8-router"
+    ],
+    "description": "Router: take the first route whose condition matches",
+    "body": [
+      "- type: router",
+      "  id: ${1:route}",
+      "  routes:",
+      "    - condition: \"${2:{{ context.data.tier == \\\\\"gold\\\\\" \\}\\}}\"",
+      "      blocks:",
+      "        - type: step",
+      "          id: ${3:gold_path}",
+      "          handler: ${4:noop}",
+      "          params: {\\}",
+      "  default:",
+      "    - type: step",
+      "      id: ${5:default_path}",
+      "      handler: ${6:noop}",
+      "      params: {\\}"
+    ]
+  },
+  "Orch8: try_catch block": {
+    "prefix": [
+      "orch8-trycatch"
+    ],
+    "description": "TryCatch: catch blocks run when try fails; finally always runs",
+    "body": [
+      "- type: try_catch",
+      "  id: ${1:guarded}",
+      "  try_block:",
+      "    - type: step",
+      "      id: ${2:risky}",
+      "      handler: ${3:http_request}",
+      "      params: {\\}",
+      "  catch_block:",
+      "    - type: step",
+      "      id: ${4:recover}",
+      "      handler: ${5:log}",
+      "      params:",
+      "        message: recovering",
+      "  finally_block:",
+      "    - type: step",
+      "      id: ${6:cleanup}",
+      "      handler: ${7:noop}",
+      "      params: {\\}"
+    ]
+  },
+  "Orch8: sub_sequence block": {
+    "prefix": [
+      "orch8-subsequence"
+    ],
+    "description": "SubSequence: invoke another sequence as a child workflow",
+    "body": [
+      "- type: sub_sequence",
+      "  id: ${1:child}",
+      "  sequence_name: ${2:child-workflow}",
+      "  input:",
+      "    ${3:key}: \"${4:{{ context.data.value \\}\\}}\""
+    ]
+  },
+  "Orch8: cancellation_scope block": {
+    "prefix": [
+      "orch8-cancellation-scope"
+    ],
+    "description": "CancellationScope: children keep running when the instance is cancelled",
+    "body": [
+      "- type: cancellation_scope",
+      "  id: ${1:protected}",
+      "  blocks:",
+      "    - type: step",
+      "      id: ${2:must_finish}",
+      "      handler: ${3:noop}",
+      "      params: {\\}"
+    ]
+  },
+  "Orch8: ab_split block": {
+    "prefix": [
+      "orch8-absplit"
+    ],
+    "description": "A/B split: route traffic to a variant by weight",
+    "body": [
+      "- type: ab_split",
+      "  id: ${1:experiment}",
+      "  variants:",
+      "    - name: ${2:control}",
+      "      weight: ${3:50}",
+      "      blocks:",
+      "        - type: step",
+      "          id: ${4:control_step}",
+      "          handler: ${5:noop}",
+      "          params: {\\}",
+      "    - name: ${6:variant_a}",
+      "      weight: ${7:50}",
+      "      blocks:",
+      "        - type: step",
+      "          id: ${8:variant_step}",
+      "          handler: ${9:noop}",
+      "          params: {\\}"
+    ]
+  },
+  "Orch8: saga block": {
+    "prefix": [
+      "orch8-saga"
+    ],
+    "description": "Saga: ordered steps whose compensations run in reverse on failure",
+    "body": [
+      "- type: saga",
+      "  id: ${1:booking}",
+      "  steps:",
+      "    - id: ${2:reserve}",
+      "      action:",
+      "        type: step",
+      "        id: ${3:reserve_action}",
+      "        handler: ${4:http_request}",
+      "        params: {\\}",
+      "      compensation:",
+      "        type: step",
+      "        id: ${5:release_action}",
+      "        handler: ${6:http_request}",
+      "        params: {\\}"
+    ]
+  },
+  "Orch8: llm_call step": {
+    "prefix": [
+      "orch8-llm"
+    ],
+    "description": "Call an LLM provider (llm_call)",
+    "body": [
+      "- type: step",
+      "  id: ${1:ask_llm}",
+      "  handler: llm_call",
+      "  params:",
+      "    provider: ${2|anthropic,openai,mistral,groq|}",
+      "    model: ${3:claude-opus-5}",
+      "    api_key: ${4:credentials://llm/api_key}",
+      "    messages:",
+      "      - role: user",
+      "        content: \"${5:Summarize: {{ context.data.text \\}\\}}\"",
+      "  retry:",
+      "    max_attempts: ${6:3}"
+    ]
+  },
+  "Orch8: human_review step": {
+    "prefix": [
+      "orch8-human-review"
+    ],
+    "description": "Pause for a human decision (human_review + wait_for_input)",
+    "body": [
+      "- type: step",
+      "  id: ${1:review}",
+      "  handler: human_review",
+      "  params:",
+      "    review_data: \"${2:{{ outputs.ask_llm \\}\\}}\"",
+      "    instructions: ${3:Approve or reject this output}",
+      "    reviewer: ${4:team-lead}",
+      "  wait_for_input:",
+      "    prompt: ${5:Approve this?}",
+      "    timeout: ${6:86400000}"
+    ]
+  },
+  "Orch8: http_request step": {
+    "prefix": [
+      "orch8-http"
+    ],
+    "description": "HTTP request (http_request)",
+    "body": [
+      "- type: step",
+      "  id: ${1:call_api}",
+      "  handler: http_request",
+      "  params:",
+      "    method: ${2|GET,POST,PUT,PATCH,DELETE|}",
+      "    url: ${3:https://api.example.com/resource}",
+      "    headers:",
+      "      content-type: application/json",
+      "    body: \"${4:{\\\\\"id\\\\\": \\\\\"{{ context.data.id \\}\\}\\\\\"\\}}\"",
+      "    timeout_ms: ${5:10000}",
+      "  retry:",
+      "    max_attempts: ${6:3}",
+      "    initial_backoff: ${7:1000}"
+    ]
+  },
+  "Orch8: wait_for_event step": {
+    "prefix": [
+      "orch8-wait-event"
+    ],
+    "description": "Durably wait for correlated external events (wait_for_event)",
+    "body": [
+      "- type: step",
+      "  id: ${1:await_events}",
+      "  handler: wait_for_event",
+      "  params:",
+      "    events:",
+      "      - ${2:payment_received}",
+      "    correlation_key: \"${3:{{ context.data.order_id \\}\\}}\"",
+      "    join: ${4|all,any,count|}",
+      "  wait_for_input:",
+      "    prompt: ${5:waiting for events}",
+      "    timeout: ${6:86400000}"
+    ]
+  },
+  "Orch8: email step": {
+    "prefix": [
+      "orch8-email"
+    ],
+    "description": "Send an email via Resend / SMTP / SES (email handler; needs an engine build that ships it)",
+    "body": [
+      "- type: step",
+      "  id: ${1:send_email}",
+      "  handler: email",
+      "  params:",
+      "    provider: ${2|resend,smtp,ses|}",
+      "    api_key: ${3:credentials://resend/api_key}",
+      "    from: ${4:Orch8 <noreply@example.com>}",
+      "    to: \"${5:{{ context.data.email \\}\\}}\"",
+      "    subject: ${6:Hello}",
+      "    text: ${7:Your workflow finished.}"
+    ]
+  },
+  "Orch8: notify step": {
+    "prefix": [
+      "orch8-notify"
+    ],
+    "description": "Post to Slack / Discord / Teams (notify handler; needs an engine build that ships it)",
+    "body": [
+      "- type: step",
+      "  id: ${1:notify_team}",
+      "  handler: notify",
+      "  params:",
+      "    provider: ${2|slack,discord,teams|}",
+      "    url: ${3:credentials://ops-slack/url}",
+      "    title: ${4:Workflow update}",
+      "    text: ${5:Order {{ context.data.order_id \\}\\} shipped}"
+    ]
+  }
+}
