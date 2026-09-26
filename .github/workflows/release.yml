@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - name: Check tag matches package.json version
+        run: |
+          VERSION="$(node -p 'require("./package.json").version')"
+          if [ "v${VERSION}" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::tag ${GITHUB_REF_NAME} does not match package.json version ${VERSION}"
+            exit 1
+          fi
+          echo "VSIX=vscode-orch8-${VERSION}.vsix" >> "$GITHUB_ENV"
+      - run: npm ci
+      - run: npm run check
+      - name: Package .vsix
+        run: npm run package -- --out "$VSIX"
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "$VSIX" \
+            --title "$GITHUB_REF_NAME" \
+            --notes "Install: download \`$VSIX\` below, then run \`code --install-extension $VSIX\`. See CHANGELOG.md for changes." \
+            --verify-tag
+      - name: Publish to VS Code Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo "::notice::VSCE_PAT not set; skipping VS Code Marketplace publish"
+            exit 0
+          fi
+          npx vsce publish --packagePath "$VSIX"
+      - name: Publish to Open VSX
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          if [ -z "$OVSX_PAT" ]; then
+            echo "::notice::OVSX_PAT not set; skipping Open VSX publish"
+            exit 0
+          fi
+          npx --yes ovsx@1.2.0 publish "$VSIX" -p "$OVSX_PAT"

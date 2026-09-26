@@ -15,7 +15,19 @@ Authoring support for [Orch8](https://orch8.io) durable workflow **sequences** �
 <!-- SCREENSHOT PLACEHOLDER: preflight diagnostics in the Problems panel (media/screenshots/diagnostics.png) -->
 <!-- SCREENSHOT PLACEHOLDER: CodeLens row + snippet completion (media/screenshots/codelens.png) -->
 
-> Screenshots are not included yet. Add PNGs under `media/screenshots/` and a `repository` field in `package.json` before publishing (vsce needs the repository URL to rewrite relative image links).
+> Screenshots are not included yet.
+
+## Install
+
+The extension is not on the VS Code Marketplace or Open VSX yet. Install the `.vsix` from the [GitHub Releases](https://github.com/orch8-io/vscode-orch8/releases) page:
+
+```sh
+gh release download v0.1.0 -R orch8-io/vscode-orch8 -p '*.vsix'
+# or: curl -LO https://github.com/orch8-io/vscode-orch8/releases/download/v0.1.0/vscode-orch8-0.1.0.vsix
+code --install-extension vscode-orch8-0.1.0.vsix
+```
+
+(VS Code: *Extensions* view → `...` menu → *Install from VSIX...* works too. Cursor / VSCodium accept the same file.)
 
 ## Which files are sequences?
 
@@ -86,12 +98,16 @@ Press F5 in VS Code with this folder open to launch an Extension Development Hos
 
 Unit tests cover the pure modules: JSON-pointer → range resolution for JSON and YAML, CLI output parsing (preflight reports and strict-check errors), graph building and layout, CLI argument building / shell quoting, file matching, and that every snippet and starter expands to schema-valid content. There is no `@vscode/test-electron` suite: on this macOS machine it would launch a visible VS Code window rather than run headless.
 
-## Publishing checklist (manual — nothing here publishes automatically)
+## Releasing
+
+Pushing a tag `v<version>` (matching `package.json`) runs `.github/workflows/release.yml`: `npm run check`, packages `vscode-orch8-<version>.vsix`, attaches it to a GitHub Release, and then publishes the same file to the VS Code Marketplace if the repository secret `VSCE_PAT` is set and to Open VSX if `OVSX_PAT` is set (each step is skipped with a notice when its secret is missing). CI (`ci.yml`) runs `npm run check` on Node 20 and 22; `npm run schema:check` needs an engine checkout and stays a manual release step.
+
+## Publishing checklist
 
 Before the first release:
 
-- [ ] Create the publisher `orch8` (or change `publisher` in `package.json`) at <https://marketplace.visualstudio.com/manage> and an Azure DevOps PAT with *Marketplace › Manage* scope.
-- [ ] Claim the `orch8` namespace on Open VSX (<https://open-vsx.org>, sign the Eclipse publisher agreement, create an access token): `npx ovsx create-namespace orch8 -p <token>`.
+- [ ] Create the publisher `orch8` (or change `publisher` in `package.json`) at <https://marketplace.visualstudio.com/manage> and an Azure DevOps PAT with *Marketplace › Manage* scope; store it as the repository secret `VSCE_PAT`.
+- [ ] Claim the `orch8` namespace on Open VSX (<https://open-vsx.org>, sign the Eclipse publisher agreement, create an access token): `npx ovsx create-namespace orch8 -p <token>`; store the token as the repository secret `OVSX_PAT`.
 - [ ] Add a 128×128 PNG `icon` and `galleryBanner` to `package.json`.
 - [ ] Add the screenshots referenced above.
 - [ ] Decide whether to declare `redhat.vscode-yaml` in `extensionDependencies` (hard) or leave it optional (current).
@@ -102,7 +118,4 @@ Every release:
 - [ ] Bump `version` in `package.json` and add a `CHANGELOG.md` entry.
 - [ ] `npm ci && npm run check && npm run schema:check`
 - [ ] `npm run package` → inspect the file list (`npx vsce ls`) and install the `.vsix` locally (`code --install-extension vscode-orch8-<version>.vsix`) for a smoke test.
-- [ ] Publish the *same* `.vsix` to both registries:
-  - `npx vsce publish --packagePath vscode-orch8-<version>.vsix` (uses `VSCE_PAT`)
-  - `npx ovsx publish vscode-orch8-<version>.vsix -p <OVSX_PAT>`
-- [ ] Tag the release in git and push the tag.
+- [ ] Tag `v<version>` and push the tag; the release workflow builds, attaches and (with the secrets set) publishes the `.vsix`.
